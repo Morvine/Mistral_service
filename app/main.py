@@ -65,17 +65,24 @@ def summary(data=Body()):
     finally:
         response.close()
         response.release_conn()
+    if 'history' not in data.keys():
+        last_user_message = f'Текст стенограммы:\n{data["data"]}\n\nВопрос пользователя:\n"{question}"\n\nЗадание:\nИспользуя текст стенограммы, ответь на вопрос пользователя.\nДля ответа на вопросы используй только информацию, содержащуюся в тексте стенограммы.\nЕсли ответ на вопрос не содержится в стенограмме, выводи "Ответ на вопрос не найден.".'
+        inp = last_user_message
+    else:
+        inp = question
 
-    last_user_message = f'Текст стенограммы:\n{data["data"]}\n\nВопрос пользователя:\n"{question}"\n\nЗадание:\nИспользуя текст стенограммы, ответь на вопрос пользователя.\nДля ответа на вопросы используй только информацию, содержащуюся в тексте стенограммы.\nЕсли ответ на вопрос не содержится в стенограмме, выводи "Ответ на вопрос не найден.".'
+    conversation = Conversation()
 
-    inputs = [last_user_message]
-    for inp in inputs:
-        conversation = Conversation()
-        conversation.add_user_message(inp)
-        prompt = conversation.get_prompt(tokenizer)
-        output = generate(model, tokenizer, prompt, generation_config)
+    conversation.add_user_message(inp)
+    prompt = conversation.get_prompt(tokenizer)
+    output = generate(model, tokenizer, prompt, generation_config)
+    conversation.add_bot_message(output)
 
-    result = {'data': output}
+    tmp_history = conversation.messages
+    if len(tmp_history) > 11:
+        tmp_history = tmp_history[:3] + tmp_history[-8:]
+
+    result = {'data': output, 'history': tmp_history}
 
     if result is not None and result['data'] is not None:
         value_as_bytes = str(result).encode('utf-8')

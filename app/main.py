@@ -77,7 +77,7 @@ def summary(data=Body()):
 
     result = {'data': output}
 
-    if result is not None and result['data'] is not None and result['embeddings']:
+    if result is not None and result['data'] is not None:
         value_as_bytes = str(result).encode('utf-8')
         res_filename = f'{base_path}/' + str(hashlib.md5(value_as_bytes).hexdigest()) + '.json'
 

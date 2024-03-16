@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+
+  llm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm
+    image: llm:latest
+    env_file:
+      - .env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "0", "app.main:app", "-k", "uvicorn.workers.UvicornWorker"]
+    ports:
+      - "8003:8000"
